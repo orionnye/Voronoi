@@ -1,3 +1,14 @@
+function timeToIntersection(a, av, b, bv) {
+    let n = bv.leftNormal
+    return b.subtract(a).dot(n) / av.dot(n)
+}
+
+function pointOfIntersection(a, av, b, bv) {
+    let t = timeToIntersection(a, av, b, bv)
+    if (Number.isFinite(t))
+        return a.add(av.multiply(t))
+    return null
+}
 class Vector {
     constructor(x, y) {
         this.x = x
@@ -14,44 +25,6 @@ class Vector {
     multiply(scale) { return new Vector(this.x * scale, this.y * scale) }
     lerp(other, t) { return this.multiply(1 - t).add(other.multiply(t)) }
 }
-
-function timeToIntersection(a, av, b, bv) {
-    let n = bv.leftNormal
-    return b.subtract(a).dot(n) / av.dot(n)
-}
-
-function pointOfIntersection(a, av, b, bv) {
-    let t = timeToIntersection(a, av, b, bv)
-    if (Number.isFinite(t))
-        return a.add(av.multiply(t))
-    return null
-}
-class Line {
-    constructor(a, b) {
-        this.a = a
-        this.b = b
-    }
-    intersect(other) {
-        let thisPoint = this.a
-        let thisHeading = this.b.subtract(this.a)
-        let otherPoint = other.a
-        let otherHeading = other.b.subtract(other.a)
-        let point = pointOfIntersection(thisPoint, thisHeading, otherPoint, otherHeading)
-        if (point != null && this.intersectionPointOnLine(point) && other.intersectionPointOnLine(point))
-            return point
-        else
-            return null
-    }
-    intersectionPointOnLine(point) {
-        let heading = this.b.subtract(this.a)
-        let dot = heading.dot(point.subtract(this.a))
-        return dot > 0 && dot < this.lengthSquared
-    }
-    get lengthSquared() {
-        return this.a.subtract(this.b).lengthSquared
-    }
- }
-
  class BoundryLine {
     constructor(point, heading, rightRegion, leftRegion) {
         this.point = point
@@ -97,21 +70,37 @@ class Line {
         this.pointsToLines = []
         for (let i = 0; i < points.length; i++)
             this.pointsToLines.push([])
-        for (let i = 0; i < points.length; i++) {
-            for (let j = i + 1; j < points.length; j++) {
-                let pi = points[i]
-                let pj = points[j]
+
+        this.points = []
+        let added = new Set()
+        for (let point of points) {
+            let str = JSON.stringify(point)
+            if (!added.has(str)) {
+                added.add(str)
+                this.points.push(point)
+            }
+        }
+
+        this.addPairBoundries()
+        this.removeClippedLines()
+    }
+
+    addPairBoundries() {
+        for (let i = 0; i < this.points.length; i++) {
+            for (let j = i + 1; j < this.points.length; j++) {
+                let pi = this.points[i]
+                let pj = this.points[j]
                 let midPoint = pi.lerp(pj, 0.5)
                 let heading = pj.subtract(pi).rightNormal.unit
                 this.addLine(new BoundryLine(midPoint, heading, i, j))
             }
         }
+    }
 
-        for (let i = 0; i < this.lines.length; i++) {
+    removeClippedLines() {
+        for (let i = 0; i < this.lines.length; i++)
             if (this.lines[i].fullyClipped)
                 this.lines[i] = null
-        }
-
         this.lines = this.lines.filter((e) => e != null)
     }
 
