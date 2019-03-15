@@ -95,7 +95,7 @@ class Line {
         let newY = this.a.y + this.yDiff * alpha
         return new Vector(newX, newY)
     }
-    getPerpVector() {
+    get perpVector() {
         return new Vector(-this.yDiff, -this.xDiff)
     }
     toString() {
@@ -130,7 +130,7 @@ class VoroPoly {
         //creates perpendicular newLine
         if (newPoint !== this.point) {
             let directionalLine = new Line(newPoint, this.point)
-            let perpVector = directionalLine.getPerpVector()
+            let perpVector = directionalLine.perpVector
             let perpLine = new Line (
                 directionalLine.lerp(0.5).subtract(perpVector),
                 directionalLine.lerp(0.5).add(perpVector)
@@ -190,5 +190,25 @@ class VoroPoly {
             }
             return true
         })
+    }
+}
+class DelauneyCircle {
+    constructor(one, two, three) {
+        this.points = [one, two, three]
+    }
+    get center() {
+        let [ one, two, three ] = this.points
+        let chordOne = new Line(one, two)
+        let chordTwo = new Line(two, three)
+        let perpOne = new Line(chordOne.lerp(0.5), chordOne.lerp(0.5).add(chordOne.perpVector))
+        let perpTwo = new Line(chordTwo.lerp(0.5), chordTwo.lerp(0.5).add(chordTwo.perpVector))
+        return perpOne.findIntersection(perpTwo)
+    }
+    get radius() {
+        return this.points[0].subtract(this.center).length
+    }
+    contains(point) {
+        let dist = new Line(point, this.center).length
+        return dist <= this.radius
     }
 }

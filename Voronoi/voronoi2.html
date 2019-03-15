@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+    </head>
+    <body>
+        <canvas id="myCanvas" width=500 height=500></canvas>
+        <script src="voronoi.js"></script>
+        <script>
+            let canvas = document.getElementById("myCanvas")
+            let ctx = canvas.getContext("2d")
+            //SUPER TRIANGLE
+            let superTriangle = [
+                new Vector(100, 300),
+                new Vector(300, 300),
+                new Vector(200, 200)
+            ]
+            let delCircle = new DelauneyCircle(
+                superTriangle[0],
+                superTriangle[1],
+                superTriangle[2]
+            )
+            let points = []
+            canvas.onmousedown = function(e) {
+                let newPoint = new Vector(e.x, e.y)
+                points.push(newPoint)
+                render()
+            }
+            //RENDER FUNCTION
+            function render() {
+                //clear
+                ctx.fillStyle = "hsl(236, 100%, 90%)"
+                ctx.fillRect(0, 0, canvas.width, canvas.height)
+                // generation items
+                for (let point of superTriangle) {
+                    drawCircle("black", point)
+                }
+                let center = delCircle.center
+                drawCircle("red", center)
+                ctx.beginPath()
+                ctx.arc(center.x, center.y, delCircle.radius, 0, Math.PI * 2)
+                ctx.stroke()
+            }
+            // render functions
+            function drawLine(a, b) {
+                ctx.beginPath()
+                ctx.moveTo(a.x, a.y)
+                ctx.lineTo(b.x, b.y)
+                ctx.strokeWidth = 5
+                ctx.stroke()
+            }
+            function drawCircle(color, a) {
+                ctx.fillStyle = color
+                ctx.beginPath()
+                ctx.arc(a.x, a.y, 5, 0, 2 * Math.PI)
+                ctx.fill()
+            }
+            function drawVoroPoly(color, voroPoly) {
+                drawCircle("black", voroPoly.point)
+                ctx.beginPath()
+                for (let line of voroPoly.lines) {
+                    ctx.moveTo(line.a.x, line.a.y)
+                    ctx.lineTo(line.b.x, line.b.y)
+                    ctx.stroke()
+                }
+            }
+            render()
+        </script>
+    </body>
+</html>
