@@ -10,10 +10,12 @@
             let canvas = document.getElementById("myCanvas")
             let ctx = canvas.getContext("2d")
             let points = []
+            let diagram = null
             let mouse = {x: 0, y: 0}
             canvas.onmousedown = function(e) {
                 let newPoint = new Vector(e.x, e.y)
                 points.push(newPoint)
+                diagram = new VoronoiDiagram(points)
                 render()
             }
             canvas.onmousemove = function(e) {
@@ -25,21 +27,11 @@
                 //clear
                 ctx.fillStyle = "hsl(236, 100%, 90%)"
                 ctx.fillRect(0, 0, canvas.width, canvas.height)
-                let a0 = new Vector(100, 100)
-                let a1 = new Vector(200, 200)
-                drawLine(a0, a1)
-                let b0 = new Vector(150, 100)
-                // let b1 = new Vector(50, 200)
-                let b1 = new Vector(mouse.x, mouse.y)
-                drawLine(b0, b1)
-                let l0 = new Line(a0, a1)
-                let l1 = new Line(b0, b1)
-                let ip = l0.intersect(l1)
-                if (ip)
-                    drawCircle("black", ip)
-                setTimeout(() => {
-                    render()
-                }, 1);
+                for (let point of points)
+                    drawCircle("black", point)
+                if (diagram)
+                    for (let line of diagram.lines)
+                        drawLine(line.forwardPoint, line.backwardPoint)
             }
             // render functions
             function drawLine(a, b) {
