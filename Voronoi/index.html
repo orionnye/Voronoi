@@ -9,35 +9,37 @@
         <script>
             let canvas = document.getElementById("myCanvas")
             let ctx = canvas.getContext("2d")
-
-            let voroPolys = []
+            let points = []
+            let mouse = {x: 0, y: 0}
             canvas.onmousedown = function(e) {
                 let newPoint = new Vector(e.x, e.y)
-                voroPolys.push(new VoroPoly(newPoint))
-                voroPolys.forEach(poly => {
-                    for (let i = 0; i < voroPolys.length; i++) {
-                        poly.update(voroPolys[i].point)
-                    }
-                })
+                points.push(newPoint)
                 render()
             }
-            // window.onmousemove = function(e) {
-            //     let newPoint = new Vector(e.x, e.y)
-            //     points[0] = newPoint
-            //     render()
-            // }
+            canvas.onmousemove = function(e) {
+                mouse.x = e.x
+                mouse.y = e.y
+            }
             //RENDER FUNCTION
             function render() {
-                let polyCount = voroPolys.length
-                let lineCount = voroPolys.map(poly => poly.lines.length).reduce((a, b) => a + b, 0)
-                console.log({polyCount, lineCount})
                 //clear
                 ctx.fillStyle = "hsl(236, 100%, 90%)"
                 ctx.fillRect(0, 0, canvas.width, canvas.height)
-                // generation items
-                for (let voro of voroPolys) {
-                    drawVoroPoly("black", voro)
-                }
+                let a0 = new Vector(100, 100)
+                let a1 = new Vector(200, 200)
+                drawLine(a0, a1)
+                let b0 = new Vector(150, 100)
+                // let b1 = new Vector(50, 200)
+                let b1 = new Vector(mouse.x, mouse.y)
+                drawLine(b0, b1)
+                let l0 = new Line(a0, a1)
+                let l1 = new Line(b0, b1)
+                let ip = l0.intersect(l1)
+                if (ip)
+                    drawCircle("black", ip)
+                setTimeout(() => {
+                    render()
+                }, 1);
             }
             // render functions
             function drawLine(a, b) {
@@ -52,15 +54,6 @@
                 ctx.beginPath()
                 ctx.arc(a.x, a.y, 5, 0, 2 * Math.PI)
                 ctx.fill()
-            }
-            function drawVoroPoly(color, voroPoly) {
-                drawCircle("black", voroPoly.point)
-                ctx.beginPath()
-                for (let line of voroPoly.lines) {
-                    ctx.moveTo(line.a.x, line.a.y)
-                    ctx.lineTo(line.b.x, line.b.y)
-                    ctx.stroke()
-                }
             }
             render()
         </script>
