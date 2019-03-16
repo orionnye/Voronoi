@@ -4,33 +4,48 @@
         <meta charset="utf-8" />
     </head>
     <body>
-        <canvas id="myCanvas" width=500 height=500></canvas>
+        <canvas id="myCanvas" width=800 height=800></canvas>
         <script src="voronoi.js"></script>
         <script>
             {
                 let canvas = document.getElementById("myCanvas")
                 let ctx = canvas.getContext("2d")
                 let points = []
+                let colors = []
                 let mouse = {x: 0, y: 0}
                 canvas.onmousedown = function(e) {
                     let newPoint = new Vector(e.x, e.y)
                     points.push(newPoint)
+                    colors.push(`hsl(${(Math.random() * 360) | 0}, 50%, 50%)`)
                     // render()
                 }
                 canvas.onmousemove = function(e) {
                     mouse.x = e.x
                     mouse.y = e.y
                 }
-                //RENDER FUNCTION
                 function render() {
-                    //clear
                     ctx.fillStyle = "hsl(236, 100%, 90%)"
                     ctx.fillRect(0, 0, canvas.width, canvas.height)
                     for (let point of points)
                         drawCircle("black", point)
                     let diagram = new VoronoiDiagram(points)
+
+
+                    let i = 0
+                    for (let polygon of diagram.polygons) {
+                        if (polygon.length < 3)
+                            continue
+                        ctx.fillStyle = colors[i++]
+                        polygonPath(polygon)
+                        ctx.fill()
+                    }
+
                     for (let line of diagram.lines)
                         drawLine(line.forwardPoint, line.backwardPoint)
+
+                    for (let point of points)
+                        drawCircle("black", point)
+
                     for (let point of points) {
                         let angle = Math.random() * 2 * Math.PI
                         let dx = Math.cos(angle)
@@ -40,12 +55,10 @@
                     }
                     setTimeout(() => render(), 1)
                 }
-                // render functions
                 function drawLine(a, b) {
                     ctx.beginPath()
                     ctx.moveTo(a.x, a.y)
                     ctx.lineTo(b.x, b.y)
-                    ctx.strokeWidth = 5
                     ctx.stroke()
                 }
                 function drawCircle(color, a) {
@@ -53,6 +66,13 @@
                     ctx.beginPath()
                     ctx.arc(a.x, a.y, 5, 0, 2 * Math.PI)
                     ctx.fill()
+                }
+                function polygonPath(polygon) {
+                    ctx.beginPath()
+                    ctx.moveTo(polygon[0].x, polygon[0].y)
+                    for (let i = 1; i < polygon.length; i++)
+                        ctx.lineTo(polygon[i].x, polygon[i].y)
+                    ctx.closePath()
                 }
                 render()
             }
