@@ -20,6 +20,7 @@ class Vector {
     get leftNormal() { return new Vector(-this.y, this.x) }
     get rightNormal() { return new Vector(this.y, -this.x) }
     get angle() { return Math.atan2(this.y, this.x) }
+    get negate() { return new Vector(-this.x, -this.y) }
     add(other) { return new Vector(this.x + other.x, this.y + other.y) }
     subtract(other) { return new Vector(this.x - other.x, this.y - other.y) }
     dot(other) { return this.x * other.x + this.y * other.y }
@@ -56,19 +57,27 @@ class Vector {
     }
 
     get forwardPoint() {
-        let distance = Math.min(this.forward, 10000)
-        return this.point.add(this.heading.multiply(distance))
+        return this.point.add(this.heading.multiply(this.forward))
     }
 
     get backwardPoint() {
-        let distance = Math.max(this.backward, -10000)
-        return this.point.add(this.heading.multiply(distance))
+        return this.point.add(this.heading.multiply(this.backward))
     }
  }
 
+// class VoronoiPolygon {
+//     constructor(point) {
+//         this.point = point
+//         this.lines = []
+//     }
+
+//     addLine(line) {
+
+//     }
+// }
  class VoronoiDiagram {
 
-    constructor(points) {
+    constructor(points, boundaryPoints) {
         this.lines = []
         this.pointsToLines = []
         for (let i = 0; i < points.length; i++)
@@ -85,6 +94,11 @@ class Vector {
         }
 
         this.addPairBoundries()
+        this.clipToBounds(boundaryPoints)
+        this.cleanupClippedLines()
+    }
+
+    cleanupClippedLines() {
         this.lines = this.lines.filter((line) => !line.fullyClipped)
         this.pointsToLines.forEach((lines, i) => {
             this.pointsToLines[i] = lines.filter((line) => !line.fullyClipped)
@@ -118,12 +132,28 @@ class Vector {
 
     clip(a, b, region) {
         let point = pointOfIntersection(a.point, a.heading, b.point, b.heading)
+        if (point == null)
+            return
         a.clip(point, b.regionNormal(region))
         b.clip(point, a.regionNormal(region))
     }
 
     get polygons() {
         return this.pointsToLines.map((lines, i) => this.polygon(lines, i))
+    }
+
+    clipToBounds(points) {
+        for (let i = 0; i < points.length; i++) {
+            let j = (i + 1) % points.length
+            let pi = points[i]
+            let pj = points[j]
+            let heading = pj.subtract(pi).unit
+            for (let region = 0; region < this.points.length; region++) {
+                let line = new BoundaryLine(pi, heading, region, -1)
+                this.lines.push(line)
+                this.addLineToRegion(line, region)
+            }
+        }
     }
 
     polygon(lines, region) {

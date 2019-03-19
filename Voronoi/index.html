@@ -28,8 +28,12 @@
                     ctx.fillRect(0, 0, canvas.width, canvas.height)
                     for (let point of points)
                         drawCircle("black", point)
-                    let diagram = new VoronoiDiagram(points)
-
+                    let diagram = new VoronoiDiagram(points, [
+                        new Vector(0, 0),
+                        new Vector(800, 0),
+                        new Vector(800, 800),
+                        new Vector(0, 800)
+                    ])
 
                     let i = 0
                     for (let polygon of diagram.polygons) {
