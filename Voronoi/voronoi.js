@@ -96,7 +96,7 @@ class Polygon {
                 this.lines.delete(line)
     }
 
-    sortedPoints() {
+    get sortedPoints() {
         let points = []
         for (let line of this.lines) {
             points.push(line.forwardPoint)

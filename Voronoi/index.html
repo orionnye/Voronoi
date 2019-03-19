@@ -42,7 +42,6 @@
                         new Vector(100, 100),
                         new Vector(700, 100),
                         new Vector(700, 700),
-                        // new Vector(400, 400),
                         new Vector(100, 700)
                     ]
 
@@ -51,9 +50,7 @@
                     let newPoints = []
                     let colorIndex = 0
                     for (let polygon of diagram.polygons) {
-                        let points = polygon.sortedPoints()
-                        if (polygon.fullyClipped)
-                            console.log("Clipped!")
+                        let points = polygon.sortedPoints
                         if (points.length >= 3) {
                             ctx.fillStyle = colors[colorIndex]
                             polygonPath(points)
@@ -75,7 +72,7 @@
 
                     points = newPoints
 
-                    setTimeout(() => render(), 1)
+                    requestAnimationFrame(() => render())
                 }
                 function drawLine(a, b) {
                     ctx.beginPath()
