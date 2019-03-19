@@ -28,7 +28,7 @@ class Vector {
     lerp(other, t) { return this.multiply(1 - t).add(other.multiply(t)) }
 }
 
- class BoundryLine {
+ class BoundaryLine {
     constructor(point, heading, leftRegion, rightRegion) {
         this.point = point
         this.heading = heading
@@ -84,8 +84,6 @@ class Vector {
             }
         }
 
-        this.idCounter = 0
-
         this.addPairBoundries()
         this.lines = this.lines.filter((line) => !line.fullyClipped)
         this.pointsToLines.forEach((lines, i) => {
@@ -100,7 +98,7 @@ class Vector {
                 let pj = this.points[j]
                 let midPoint = pi.lerp(pj, 0.5)
                 let heading = pj.subtract(pi).rightNormal.unit
-                this.addLine(new BoundryLine(midPoint, heading, j, i))
+                this.addLine(new BoundaryLine(midPoint, heading, j, i))
             }
         }
     }
@@ -120,7 +118,6 @@ class Vector {
 
     clip(a, b, region) {
         let point = pointOfIntersection(a.point, a.heading, b.point, b.heading)
-        let pointId = this.idCounter++
         a.clip(point, b.regionNormal(region))
         b.clip(point, a.regionNormal(region))
     }
