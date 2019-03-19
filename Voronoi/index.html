@@ -55,10 +55,13 @@
                             ctx.fillStyle = colors[colorIndex]
                             polygonPath(points)
                             ctx.fill()
-                            polygonPath(points)
-                            ctx.stroke()
+                            ctx.save()
+                                ctx.strokeStyle = "white"
+                                polygonPath(points)
+                                ctx.stroke()
+                            ctx.restore()
                         }
-                        drawCircle("black", polygon.point)
+                        drawCircle("white", polygon.point)
                         colorIndex++
                         let average = points.reduce((a, b) => a.add(b), new Vector(0, 0)).multiply(1 / points.length)
                         if (!Number.isFinite(average.x) || !Number.isFinite(average.y))
@@ -67,8 +70,12 @@
                             newPoints.push(polygon.point.lerp(average, 0.1))
                     }
 
-                    polygonPath(boundary)
-                    ctx.stroke()
+
+                    ctx.save()
+                        ctx.strokeStyle = "white"
+                        polygonPath(boundary)
+                        ctx.stroke()
+                    ctx.restore()
 
                     points = newPoints
 
