@@ -99,7 +99,8 @@ class Polygon {
             points.push(line.forwardPoint)
             points.push(line.backwardPoint)
         }
-        points.sort((a, b) => a.subtract(this.point).angle - b.subtract(this.point).angle )
+        let average = points.reduce((a, b) => a.add(b), new Vector(0, 0)).multiply(1 / points.length)
+        points.sort((a, b) => a.subtract(average).angle - b.subtract(average).angle )
         return points
     }
 }
