@@ -27,10 +27,13 @@
                     ctx.fillStyle = "hsl(236, 100%, 90%)"
                     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-                    for (let point of points) {
-                        let angle = Math.random() * 2 * Math.PI
-                        let dx = Math.cos(angle)
-                        let dy = Math.sin(angle)
+                    for (let i = 0; i < points.length; i++) {
+                        let point = points[i]
+                        // let angle = Math.random() * 2 * Math.PI
+                        let angle = i + performance.now() / 1000
+                        let r = 0.5
+                        let dx = Math.cos(angle) * r
+                        let dy = Math.sin(angle) * r
                         point.x += dx
                         point.y += dy
                     }
@@ -39,6 +42,7 @@
                         new Vector(100, 100),
                         new Vector(700, 100),
                         new Vector(700, 700),
+                        // new Vector(400, 400),
                         new Vector(100, 700)
                     ]
 
