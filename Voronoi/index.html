@@ -34,6 +34,7 @@
                         new Vector(100, 700)
                     ])
 
+                    let newPoints = []
                     let colorIndex = 0
                     for (let polygon of diagram.polygons) {
                         let points = polygon.sortedPoints()
@@ -46,15 +47,19 @@
                         }
                         drawCircle("black", polygon.point)
                         colorIndex++
+                        let average = points.reduce((a, b) => a.add(b), new Vector(0, 0)).multiply(1 / points.length)
+                        newPoints.push(polygon.point.lerp(average, 0.1))
                     }
 
-                    for (let point of points) {
-                        let angle = Math.random() * 2 * Math.PI
-                        let dx = Math.cos(angle)
-                        let dy = Math.sin(angle)
-                        point.x += dx
-                        point.y += dy
-                    }
+                    points = newPoints
+
+                    // for (let point of points) {
+                    //     let angle = Math.random() * 2 * Math.PI
+                    //     let dx = Math.cos(angle)
+                    //     let dy = Math.sin(angle)
+                    //     point.x += dx
+                    //     point.y += dy
+                    // }
                     setTimeout(() => render(), 1)
                 }
                 function drawLine(a, b) {
