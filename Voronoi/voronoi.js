@@ -18,7 +18,7 @@ class Vector {
     lerp(other, t) { return this.multiply(1 - t).add(other.multiply(t)) }
 }
 
- class Line {
+class Line {
     constructor(point, heading, normal = null) {
         this.point = point
         this.heading = heading
@@ -67,7 +67,7 @@ class Vector {
     get backwardPoint() {
         return this.point.add(this.heading.multiply(this.backward))
     }
- }
+}
 
 class Polygon {
     constructor(point) {
@@ -103,11 +103,11 @@ class Polygon {
             points.push(line.backwardPoint)
         }
         let average = points.reduce((a, b) => a.add(b), new Vector(0, 0)).multiply(1 / points.length)
-        points.sort((a, b) => a.subtract(average).angle - b.subtract(average).angle )
+        points.sort((a, b) => a.subtract(average).angle - b.subtract(average).angle)
         return points
     }
 }
- class VoronoiDiagram {
+class VoronoiDiagram {
 
     constructor(points, boundaryPoints) {
         this.polygons = []
@@ -122,8 +122,6 @@ class Polygon {
 
         this.addPairBoundries()
         this.clipToBounds(boundaryPoints)
-        // for (let polygon of this.polygons)
-        //     polygon.cleanup()
     }
 
     addPairBoundries() {
@@ -153,4 +151,4 @@ class Polygon {
                 polygon.addLine(new Line(pi, heading, normal))
         }
     }
- }
+}

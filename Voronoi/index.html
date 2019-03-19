@@ -13,30 +13,21 @@
                 let points = []
                 let colors = []
                 let mouse = {x: 0, y: 0}
+
                 canvas.onmousedown = function(e) {
                     let newPoint = new Vector(e.x, e.y)
                     points.push(newPoint)
                     colors.push(`hsl(${(90 + Math.random() * 90) | 0}, 50%, 25%)`)
-                    // render()
                 }
+
                 canvas.onmousemove = function(e) {
                     mouse.x = e.x
                     mouse.y = e.y
                 }
+
                 function render() {
                     ctx.fillStyle = "hsl(236, 100%, 90%)"
                     ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-                    for (let i = 0; i < points.length; i++) {
-                        let point = points[i]
-                        // let angle = Math.random() * 2 * Math.PI
-                        let angle = i + performance.now() / 1000
-                        let r = 0.5
-                        let dx = Math.cos(angle) * r
-                        let dy = Math.sin(angle) * r
-                        point.x += dx
-                        point.y += dy
-                    }
 
                     let boundary = [
                         new Vector(100, 100),
@@ -47,27 +38,40 @@
 
                     let diagram = new VoronoiDiagram(points, boundary)
 
-                    let newPoints = []
-                    let colorIndex = 0
-                    for (let polygon of diagram.polygons) {
+                    let polygons = diagram.polygons
+                    for (let i = 0; i < points.length; i++) {
+                        let polygon = polygons[i]
+
                         let points = polygon.sortedPoints
                         if (points.length >= 3) {
-                            ctx.fillStyle = colors[colorIndex]
+                            ctx.fillStyle = colors[i]
                             polygonPath(points)
                             ctx.fill()
+
                             ctx.save()
                                 ctx.strokeStyle = "white"
                                 polygonPath(points)
                                 ctx.stroke()
                             ctx.restore()
                         }
+
                         drawCircle("white", polygon.point)
-                        colorIndex++
+
+                        let point = polygon.point
+
                         let average = points.reduce((a, b) => a.add(b), new Vector(0, 0)).multiply(1 / points.length)
-                        if (!Number.isFinite(average.x) || !Number.isFinite(average.y))
-                            newPoints.push(polygon.point)
-                        else
-                            newPoints.push(polygon.point.lerp(average, 0.1))
+                        let lerped = polygon.point.lerp(average, 0.1)
+                        if (Number.isFinite(lerped.x) && Number.isFinite(lerped.y)) {
+                            point.x = lerped.x
+                            point.y = lerped.y
+                        }
+
+                        let angle = i + performance.now() / 1000
+                        let r = 0.5
+                        let dx = Math.cos(angle) * r
+                        let dy = Math.sin(angle) * r
+                        point.x += dx
+                        point.y += dy
                     }
 
 
@@ -77,22 +81,16 @@
                         ctx.stroke()
                     ctx.restore()
 
-                    points = newPoints
-
                     requestAnimationFrame(() => render())
                 }
-                function drawLine(a, b) {
-                    ctx.beginPath()
-                    ctx.moveTo(a.x, a.y)
-                    ctx.lineTo(b.x, b.y)
-                    ctx.stroke()
-                }
+
                 function drawCircle(color, a) {
                     ctx.fillStyle = color
                     ctx.beginPath()
                     ctx.arc(a.x, a.y, 5, 0, 2 * Math.PI)
                     ctx.fill()
                 }
+
                 function polygonPath(polygon) {
                     ctx.beginPath()
                     ctx.moveTo(polygon[0].x, polygon[0].y)
@@ -100,6 +98,7 @@
                         ctx.lineTo(polygon[i].x, polygon[i].y)
                     ctx.closePath()
                 }
+
                 render()
             }
         </script>
