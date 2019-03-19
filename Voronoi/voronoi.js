@@ -1,14 +1,3 @@
-function timeToIntersection(a, av, b, bv) {
-    let n = bv.leftNormal
-    return b.subtract(a).dot(n) / av.dot(n)
-}
-
-function pointOfIntersection(a, av, b, bv) {
-    let t = timeToIntersection(a, av, b, bv)
-    if (Number.isFinite(t))
-        return a.add(av.multiply(t))
-    return null
-}
 class Vector {
     constructor(x, y) {
         this.x = x
@@ -36,6 +25,18 @@ class Vector {
         this.forward = Infinity
         this.backward = -Infinity
         this.normal = normal
+    }
+
+    timeToIntersection(other) {
+        let n = other.heading.leftNormal
+        return other.point.subtract(this.point).dot(n) / this.heading.dot(n)
+    }
+
+    pointOfIntersection(other) {
+        let t = this.timeToIntersection(other)
+        if (Number.isFinite(t))
+            return this.point.add(this.heading.multiply(t))
+        return null
     }
 
     clip(point, normal) {
@@ -81,7 +82,7 @@ class Polygon {
     }
 
     clip(a, b) {
-        let point = pointOfIntersection(a.point, a.heading, b.point, b.heading)
+        let point = a.pointOfIntersection(b)
         if (point == null)
             return
         a.clip(point, b.outerNormal(this.point))
