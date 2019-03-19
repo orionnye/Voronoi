@@ -120,10 +120,10 @@ class Polygon {
             }
         }
 
-        this.clipToBounds(boundaryPoints)
         this.addPairBoundries()
-        for (let polygon of this.polygons)
-            polygon.cleanup()
+        this.clipToBounds(boundaryPoints)
+        // for (let polygon of this.polygons)
+        //     polygon.cleanup()
     }
 
     addPairBoundries() {
