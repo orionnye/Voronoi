@@ -16,7 +16,7 @@
                 canvas.onmousedown = function(e) {
                     let newPoint = new Vector(e.x, e.y)
                     points.push(newPoint)
-                    colors.push(`hsl(${(Math.random() * 360) | 0}, 50%, 50%)`)
+                    colors.push(`hsl(${(90 + Math.random() * 90) | 0}, 50%, 25%)`)
                     // render()
                 }
                 canvas.onmousemove = function(e) {

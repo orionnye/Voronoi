@@ -72,13 +72,14 @@ class Vector {
 class Polygon {
     constructor(point) {
         this.point = point
-        this.lines = []
+        this.lines = new Set()
     }
 
     addLine(line) {
         for (let otherLine of this.lines)
             this.clip(line, otherLine)
-        this.lines.push(line)
+        this.lines.add(line)
+        this.cleanup()
     }
 
     clip(a, b) {
@@ -90,7 +91,9 @@ class Polygon {
     }
 
     cleanup() {
-        this.lines = this.lines.filter((line) => !line.fullyClipped)
+        for (let line of this.lines)
+            if (line.fullyClipped)
+                this.lines.delete(line)
     }
 
     sortedPoints() {
