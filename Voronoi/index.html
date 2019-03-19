@@ -26,8 +26,7 @@
                 function render() {
                     ctx.fillStyle = "hsl(236, 100%, 90%)"
                     ctx.fillRect(0, 0, canvas.width, canvas.height)
-                    for (let point of points)
-                        drawCircle("black", point)
+
                     let diagram = new VoronoiDiagram(points, [
                         new Vector(0, 0),
                         new Vector(800, 0),
@@ -35,20 +34,19 @@
                         new Vector(0, 800)
                     ])
 
-                    let i = 0
+                    let colorIndex = 0
                     for (let polygon of diagram.polygons) {
-                        if (polygon.length < 3)
-                            continue
-                        ctx.fillStyle = colors[i++]
-                        polygonPath(polygon)
-                        ctx.fill()
+                        let points = polygon.sortedPoints()
+                        if (points.length >= 3) {
+                            ctx.fillStyle = colors[colorIndex]
+                            polygonPath(points)
+                            ctx.fill()
+                            polygonPath(points)
+                            ctx.stroke()
+                        }
+                        drawCircle("black", polygon.point)
+                        colorIndex++
                     }
-
-                    for (let line of diagram.lines)
-                        drawLine(line.forwardPoint, line.backwardPoint)
-
-                    for (let point of points)
-                        drawCircle("black", point)
 
                     for (let point of points) {
                         let angle = Math.random() * 2 * Math.PI

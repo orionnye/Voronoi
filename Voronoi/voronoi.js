@@ -29,14 +29,13 @@ class Vector {
     lerp(other, t) { return this.multiply(1 - t).add(other.multiply(t)) }
 }
 
- class BoundaryLine {
-    constructor(point, heading, leftRegion, rightRegion) {
+ class Line {
+    constructor(point, heading, normal = null) {
         this.point = point
         this.heading = heading
-        this.leftRegion = leftRegion
-        this.rightRegion = rightRegion
         this.forward = Infinity
         this.backward = -Infinity
+        this.normal = normal
     }
 
     clip(point, normal) {
@@ -52,8 +51,12 @@ class Vector {
         return this.forward < this.backward
     }
 
-    regionNormal(region) {
-        return region == this.leftRegion ? this.heading.rightNormal : this.heading.leftNormal
+    outerNormal(innerPoint) {
+        if (this.normal != null)
+            return this.normal
+        let normal = this.heading.rightNormal
+        let negate = this.point.subtract(innerPoint).dot(normal) < 0
+        return negate ? normal.negate : normal
     }
 
     get forwardPoint() {
@@ -65,81 +68,73 @@ class Vector {
     }
  }
 
-// class VoronoiPolygon {
-//     constructor(point) {
-//         this.point = point
-//         this.lines = []
-//     }
+class Polygon {
+    constructor(point) {
+        this.point = point
+        this.lines = []
+    }
 
-//     addLine(line) {
+    addLine(line) {
+        for (let otherLine of this.lines)
+            this.clip(line, otherLine)
+        this.lines.push(line)
+    }
 
-//     }
-// }
+    clip(a, b) {
+        let point = pointOfIntersection(a.point, a.heading, b.point, b.heading)
+        if (point == null)
+            return
+        a.clip(point, b.outerNormal(this.point))
+        b.clip(point, a.outerNormal(this.point))
+    }
+
+    cleanup() {
+        this.lines = this.lines.filter((line) => !line.fullyClipped)
+    }
+
+    sortedPoints() {
+        let points = []
+        for (let line of this.lines) {
+            points.push(line.forwardPoint)
+            points.push(line.backwardPoint)
+        }
+        points.sort((a, b) => a.subtract(this.point).angle - b.subtract(this.point).angle )
+        return points
+    }
+}
  class VoronoiDiagram {
 
     constructor(points, boundaryPoints) {
-        this.lines = []
-        this.pointsToLines = []
-        for (let i = 0; i < points.length; i++)
-            this.pointsToLines.push([])
-
-        this.points = []
+        this.polygons = []
         let added = new Set()
         for (let point of points) {
             let str = JSON.stringify(point)
             if (!added.has(str)) {
                 added.add(str)
-                this.points.push(point)
+                this.polygons.push(new Polygon(point))
             }
         }
 
-        this.addPairBoundries()
         this.clipToBounds(boundaryPoints)
-        this.cleanupClippedLines()
-    }
-
-    cleanupClippedLines() {
-        this.lines = this.lines.filter((line) => !line.fullyClipped)
-        this.pointsToLines.forEach((lines, i) => {
-            this.pointsToLines[i] = lines.filter((line) => !line.fullyClipped)
-        })
+        this.addPairBoundries()
+        for (let polygon of this.polygons)
+            polygon.cleanup()
     }
 
     addPairBoundries() {
-        for (let i = 0; i < this.points.length; i++) {
-            for (let j = i + 1; j < this.points.length; j++) {
-                let pi = this.points[i]
-                let pj = this.points[j]
+        for (let i = 0; i < this.polygons.length; i++) {
+            for (let j = i + 1; j < this.polygons.length; j++) {
+                let pli = this.polygons[i]
+                let plj = this.polygons[j]
+                let pi = pli.point
+                let pj = plj.point
                 let midPoint = pi.lerp(pj, 0.5)
                 let heading = pj.subtract(pi).rightNormal.unit
-                this.addLine(new BoundaryLine(midPoint, heading, j, i))
+                let line = new Line(midPoint, heading)
+                pli.addLine(line)
+                plj.addLine(line)
             }
         }
-    }
-
-    addLine(line) {
-        this.lines.push(line)
-        this.addLineToRegion(line, line.rightRegion)
-        this.addLineToRegion(line, line.leftRegion)
-    }
-
-    addLineToRegion(line, region) {
-        let regionLines = this.pointsToLines[region]
-        for (let i = 0; i < regionLines.length; i++)
-            this.clip(line, regionLines[i], region)
-        regionLines.push(line)
-    }
-
-    clip(a, b, region) {
-        let point = pointOfIntersection(a.point, a.heading, b.point, b.heading)
-        if (point == null)
-            return
-        a.clip(point, b.regionNormal(region))
-        b.clip(point, a.regionNormal(region))
-    }
-
-    get polygons() {
-        return this.pointsToLines.map((lines, i) => this.polygon(lines, i))
     }
 
     clipToBounds(points) {
@@ -148,24 +143,9 @@ class Vector {
             let pi = points[i]
             let pj = points[j]
             let heading = pj.subtract(pi).unit
-            for (let region = 0; region < this.points.length; region++) {
-                let line = new BoundaryLine(pi, heading, region, -1)
-                this.lines.push(line)
-                this.addLineToRegion(line, region)
-            }
+            let normal = heading.rightNormal
+            for (let polygon of this.polygons)
+                polygon.addLine(new Line(pi, heading, normal))
         }
-    }
-
-    polygon(lines, region) {
-        let points = []
-        for (let line of lines) {
-            points.push(line.forwardPoint)
-            points.push(line.backwardPoint)
-        }
-
-        let centerPoint = this.points[region]
-        points.sort((a, b) => a.subtract(centerPoint).angle - b.subtract(centerPoint).angle )
-
-        return points
     }
  }
