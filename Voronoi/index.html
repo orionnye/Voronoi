@@ -34,21 +34,33 @@
                 }
 
                 function render() {
-                    const PADDING = 0
+                    const PADDING = 100
                     const WIDTH = window.innerWidth
                     const HEIGHT = window.innerHeight
                     ctx.canvas.width = WIDTH
                     ctx.canvas.height = HEIGHT
 
-                    ctx.fillStyle = "hsl(236, 100%, 90%)"
+                    ctx.fillStyle = "#263236"
                     ctx.fillRect(0, 0, WIDTH, HEIGHT)
 
-                    let boundary = [
-                        new Vector(PADDING, PADDING),
-                        new Vector(WIDTH - PADDING, PADDING),
-                        new Vector(WIDTH - PADDING, HEIGHT - PADDING),
-                        new Vector(PADDING, HEIGHT - PADDING)
-                    ]
+                    let boundary = []
+                    let radius = (Math.min(WIDTH, HEIGHT / Math.cos(Math.PI / 6)) / 2) - PADDING
+                    for (let i = 0; i < 6; i++) {
+                        let angle = i * Math.PI / 3
+                        boundary.push(
+                            new Vector(
+                                WIDTH / 2 + Math.cos(angle) * radius,
+                                HEIGHT / 2 + Math.sin(angle) * radius
+                            )
+                        )
+                    }
+
+                    // let boundary = [
+                    //     new Vector(PADDING, PADDING),
+                    //     new Vector(WIDTH - PADDING, PADDING),
+                    //     new Vector(WIDTH - PADDING, HEIGHT - PADDING),
+                    //     new Vector(PADDING, HEIGHT - PADDING)
+                    // ]
 
                     let diagram = new VoronoiDiagram(points, boundary)
 
@@ -58,18 +70,30 @@
 
                         let points = polygon.sortedPoints
                         if (points.length >= 3) {
-                            ctx.fillStyle = colors[i]
-                            polygonPath(points)
-                            ctx.fill()
-
                             ctx.save()
-                                ctx.strokeStyle = "white"
                                 polygonPath(points)
+
+                                ctx.fillStyle = colors[i]
+                                ctx.fill()
+
+                                ctx.strokeStyle = "white"
+                                ctx.save()
+                                    ctx.globalAlpha = 0.2
+                                    ctx.lineWidth = 10
+                                    ctx.clip()
+                                    ctx.stroke()
+                                ctx.restore()
+
+                                ctx.globalAlpha = 1
+                                ctx.lineWidth = 2
                                 ctx.stroke()
+
+                                // ctx.fillStyle = "white"
+                                // circlePath(polygon.point, 3)
+                                // ctx.fill()
                             ctx.restore()
                         }
 
-                        drawCircle("white", polygon.point)
 
                         let point = polygon.point
 
@@ -90,6 +114,7 @@
 
                     ctx.save()
                         ctx.strokeStyle = "white"
+                        ctx.lineWidth = 3
                         polygonPath(boundary)
                         ctx.stroke()
                     ctx.restore()
@@ -97,11 +122,10 @@
                     requestAnimationFrame(() => render())
                 }
 
-                function drawCircle(color, a) {
-                    ctx.fillStyle = color
+                function circlePath(a, radius) {
                     ctx.beginPath()
-                    ctx.arc(a.x, a.y, 5, 0, 2 * Math.PI)
-                    ctx.fill()
+                    ctx.arc(a.x, a.y, radius, 0, 2 * Math.PI)
+                    ctx.closePath()
                 }
 
                 function polygonPath(polygon) {
