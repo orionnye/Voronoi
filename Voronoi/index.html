@@ -3,21 +3,27 @@
     <head>
         <meta charset="utf-8" />
     </head>
-    <body>
-        <canvas id="myCanvas" width=800 height=800></canvas>
+    <body style="margin: 0px; overflow: hidden">
+        <canvas id="myCanvas"></canvas>
         <script src="voronoi.js"></script>
         <script>
             {
                 let canvas = document.getElementById("myCanvas")
                 let ctx = canvas.getContext("2d")
                 let points = []
+
                 let colors = []
                 let mouse = {x: 0, y: 0}
 
                 canvas.onmousedown = function(e) {
-                    let newPoint = new Vector(e.x, e.y)
-                    points.push(newPoint)
-                    colors.push(`hsl(${(90 + Math.random() * 90) | 0}, 50%, 25%)`)
+                    for (let i = 0; i < 5; i++) {
+                        let newPoint = new Vector(e.x, e.y).add(Vector.random(10))
+                        points.push(newPoint)
+                        let h = 90 + Math.random() * 90
+                        let s = 45 + Math.random() * 10
+                        let l = 20 + Math.random() * 10
+                        colors.push(`hsl(${h},${s}%,${l}%)`)
+                    }
                 }
 
                 canvas.onmousemove = function(e) {
@@ -26,14 +32,20 @@
                 }
 
                 function render() {
+                    const PADDING = 0
+                    const WIDTH = window.innerWidth
+                    const HEIGHT = window.innerHeight
+                    ctx.canvas.width = WIDTH
+                    ctx.canvas.height = HEIGHT
+
                     ctx.fillStyle = "hsl(236, 100%, 90%)"
-                    ctx.fillRect(0, 0, canvas.width, canvas.height)
+                    ctx.fillRect(0, 0, WIDTH, HEIGHT)
 
                     let boundary = [
-                        new Vector(100, 100),
-                        new Vector(700, 100),
-                        new Vector(700, 700),
-                        new Vector(100, 700)
+                        new Vector(PADDING, PADDING),
+                        new Vector(WIDTH - PADDING, PADDING),
+                        new Vector(WIDTH - PADDING, HEIGHT - PADDING),
+                        new Vector(PADDING, HEIGHT - PADDING)
                     ]
 
                     let diagram = new VoronoiDiagram(points, boundary)
@@ -55,7 +67,7 @@
                             ctx.restore()
                         }
 
-                        drawCircle("white", polygon.point)
+                        // drawCircle("white", polygon.point)
 
                         let point = polygon.point
 

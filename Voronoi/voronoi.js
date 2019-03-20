@@ -16,6 +16,10 @@ class Vector {
     cross(other) { return this.x * other.y - this.y * other.x }
     multiply(scale) { return new Vector(this.x * scale, this.y * scale) }
     lerp(other, t) { return this.multiply(1 - t).add(other.multiply(t)) }
+    static random(length) {
+        let angle = Math.random() * 2 * Math.PI
+        return new Vector(Math.cos(angle) * length, Math.sin(angle) * length)
+    }
 }
 
 class Line {
