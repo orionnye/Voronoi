@@ -11,6 +11,7 @@
                 let canvas = document.getElementById("myCanvas")
                 let ctx = canvas.getContext("2d")
                 let points = []
+                let velocities = []
 
                 let colors = []
                 let mouse = {x: 0, y: 0}
@@ -23,6 +24,7 @@
                         let s = 45 + Math.random() * 10
                         let l = 20 + Math.random() * 10
                         colors.push(`hsl(${h},${s}%,${l}%)`)
+                        velocities.push(new Vector(0, 0))
                     }
                 }
 
@@ -72,18 +74,17 @@
                         let point = polygon.point
 
                         let average = points.reduce((a, b) => a.add(b), new Vector(0, 0)).multiply(1 / points.length)
-                        let lerped = polygon.point.lerp(average, 0.1)
-                        if (Number.isFinite(lerped.x) && Number.isFinite(lerped.y)) {
-                            point.x = lerped.x
-                            point.y = lerped.y
-                        }
+                        let lerped = polygon.point.lerp(average, 0.01)
+                        if (Number.isFinite(lerped.x) && Number.isFinite(lerped.y))
+                            velocities[i] = velocities[i].add(lerped.subtract(point))
 
-                        let angle = i + performance.now() / 1000
-                        let r = 0.5
-                        let dx = Math.cos(angle) * r
-                        let dy = Math.sin(angle) * r
-                        point.x += dx
-                        point.y += dy
+                        let acceleration = Vector.polar(i + performance.now() / 1000, 0.1)
+                        velocities[i] = velocities[i].add(acceleration)
+
+                        point.x += velocities[i].x
+                        point.y += velocities[i].y
+                        velocities[i].x *= 0.9
+                        velocities[i].y *= 0.9
                     }
 
 
