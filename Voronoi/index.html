@@ -14,11 +14,12 @@
                 let velocities = []
 
                 let colors = []
-                let mouse = {x: 0, y: 0}
+                let mouse = new Vector(0, 0)
+                let middle = new Vector(0, 0)
 
                 canvas.onmousedown = function(e) {
                     for (let i = 0; i < 5; i++) {
-                        let newPoint = new Vector(e.x, e.y).add(Vector.random(10))
+                        let newPoint = mouse.subtract(middle).add(Vector.random(10))
                         points.push(newPoint)
                         let h = 90 + Math.random() * 90
                         let s = 45 + Math.random() * 10
@@ -34,33 +35,38 @@
                 }
 
                 function render() {
-                    const PADDING = 100
+                    const PADDING = 1
                     const WIDTH = window.innerWidth
                     const HEIGHT = window.innerHeight
                     ctx.canvas.width = WIDTH
                     ctx.canvas.height = HEIGHT
 
+                    middle = new Vector(WIDTH / 2, HEIGHT / 2)
+
                     ctx.fillStyle = "#263236"
                     ctx.fillRect(0, 0, WIDTH, HEIGHT)
+                    ctx.translate(middle.x, middle.y)
 
-                    let boundary = []
-                    let radius = (Math.min(WIDTH, HEIGHT / Math.cos(Math.PI / 6)) / 2) - PADDING
-                    for (let i = 0; i < 6; i++) {
-                        let angle = i * Math.PI / 3
-                        boundary.push(
-                            new Vector(
-                                WIDTH / 2 + Math.cos(angle) * radius,
-                                HEIGHT / 2 + Math.sin(angle) * radius
-                            )
-                        )
-                    }
 
-                    // let boundary = [
-                    //     new Vector(PADDING, PADDING),
-                    //     new Vector(WIDTH - PADDING, PADDING),
-                    //     new Vector(WIDTH - PADDING, HEIGHT - PADDING),
-                    //     new Vector(PADDING, HEIGHT - PADDING)
-                    // ]
+                    // let boundary = []
+                    // let sides = 100
+                    // let radius = (Math.min(WIDTH, HEIGHT / Math.cos(Math.PI / sides)) / 2) - PADDING
+                    // for (let i = 0; i < sides; i++) {
+                    //     let angle = i * Math.PI * 2 / sides
+                    //     boundary.push(
+                    //         new Vector(
+                    //             Math.cos(angle) * radius,
+                    //             Math.sin(angle) * radius
+                    //         )
+                    //     )
+                    // }
+
+                    let boundary = [
+                        new Vector(PADDING, PADDING),
+                        new Vector(WIDTH - PADDING, PADDING),
+                        new Vector(WIDTH - PADDING, HEIGHT - PADDING),
+                        new Vector(PADDING, HEIGHT - PADDING)
+                    ].map((p) => p.subtract(middle))
 
                     let diagram = new VoronoiDiagram(points, boundary)
 
@@ -88,9 +94,9 @@
                                 ctx.lineWidth = 2
                                 ctx.stroke()
 
-                                // ctx.fillStyle = "white"
-                                // circlePath(polygon.point, 3)
-                                // ctx.fill()
+                                ctx.fillStyle = "white"
+                                circlePath(polygon.point, 3)
+                                ctx.fill()
                             ctx.restore()
                         }
 
