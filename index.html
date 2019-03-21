@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+    </head>
+    <body style="margin: 0px; overflow: hidden">
+        <canvas id="myCanvas"></canvas>
+        <script src="voronoi.js"></script>
+        <script>
+            {
+                let canvas = document.getElementById("myCanvas")
+                let ctx = canvas.getContext("2d")
+                let points = []
+                let velocities = []
+
+                let colors = []
+                let mouse = new Vector(0, 0)
+                let middle = new Vector(0, 0)
+
+                canvas.onmousedown = function(e) {
+                    for (let i = 0; i < 5; i++) {
+                        let newPoint = mouse.subtract(middle).add(Vector.random(10))
+                        points.push(newPoint)
+                        let h = 90 + Math.random() * 90
+                        let s = 45 + Math.random() * 10
+                        let l = 20 + Math.random() * 10
+                        colors.push(`hsl(${h},${s}%,${l}%)`)
+                        velocities.push(new Vector(0, 0))
+                    }
+                }
+
+                canvas.onmousemove = function(e) {
+                    mouse.x = e.x
+                    mouse.y = e.y
+                }
+
+                function render() {
+                    const PADDING = 1
+                    const WIDTH = window.innerWidth
+                    const HEIGHT = window.innerHeight
+                    ctx.canvas.width = WIDTH
+                    ctx.canvas.height = HEIGHT
+
+                    middle = new Vector(WIDTH / 2, HEIGHT / 2)
+
+                    ctx.fillStyle = "#263236"
+                    ctx.fillRect(0, 0, WIDTH, HEIGHT)
+                    ctx.translate(middle.x, middle.y)
+
+
+                    // let boundary = []
+                    // let sides = 100
+                    // let radius = (Math.min(WIDTH, HEIGHT / Math.cos(Math.PI / sides)) / 2) - PADDING
+                    // for (let i = 0; i < sides; i++) {
+                    //     let angle = i * Math.PI * 2 / sides
+                    //     boundary.push(
+                    //         new Vector(
+                    //             Math.cos(angle) * radius,
+                    //             Math.sin(angle) * radius
+                    //         )
+                    //     )
+                    // }
+
+                    let boundary = [
+                        new Vector(PADDING, PADDING),
+                        new Vector(WIDTH - PADDING, PADDING),
+                        new Vector(WIDTH - PADDING, HEIGHT - PADDING),
+                        new Vector(PADDING, HEIGHT - PADDING)
+                    ].map((p) => p.subtract(middle))
+
+                    let diagram = new VoronoiDiagram(points, boundary)
+
+                    let polygons = diagram.polygons
+                    for (let i = 0; i < points.length; i++) {
+                        let polygon = polygons[i]
+
+                        let points = polygon.sortedPoints
+                        if (points.length >= 3) {
+                            ctx.save()
+                                polygonPath(points)
+
+                                ctx.fillStyle = colors[i]
+                                ctx.fill()
+
+                                ctx.strokeStyle = "white"
+                                ctx.save()
+                                    ctx.globalAlpha = 0.2
+                                    ctx.lineWidth = 10
+                                    ctx.clip()
+                                    ctx.stroke()
+                                ctx.restore()
+
+                                ctx.globalAlpha = 1
+                                ctx.lineWidth = 2
+                                ctx.stroke()
+
+                                ctx.fillStyle = "white"
+                                circlePath(polygon.point, 3)
+                                ctx.fill()
+                            ctx.restore()
+                        }
+
+
+                        let point = polygon.point
+
+                        let average = points.reduce((a, b) => a.add(b), new Vector(0, 0)).multiply(1 / points.length)
+                        let lerped = polygon.point.lerp(average, 0.01)
+                        if (Number.isFinite(lerped.x) && Number.isFinite(lerped.y))
+                            velocities[i] = velocities[i].add(lerped.subtract(point))
+
+                        let acceleration = Vector.polar(i + performance.now() / 1000, 0.1)
+                        velocities[i] = velocities[i].add(acceleration)
+
+                        point.x += velocities[i].x
+                        point.y += velocities[i].y
+                        velocities[i].x *= 0.9
+                        velocities[i].y *= 0.9
+                    }
+
+
+                    ctx.save()
+                        ctx.strokeStyle = "white"
+                        ctx.lineWidth = 3
+                        polygonPath(boundary)
+                        ctx.stroke()
+                    ctx.restore()
+
+                    requestAnimationFrame(() => render())
+                }
+
+                function circlePath(a, radius) {
+                    ctx.beginPath()
+                    ctx.arc(a.x, a.y, radius, 0, 2 * Math.PI)
+                    ctx.closePath()
+                }
+
+                function polygonPath(polygon) {
+                    ctx.beginPath()
+                    ctx.moveTo(polygon[0].x, polygon[0].y)
+                    for (let i = 1; i < polygon.length; i++)
+                        ctx.lineTo(polygon[i].x, polygon[i].y)
+                    ctx.closePath()
+                }
+
+                render()
+            }
+        </script>
+    </body>
+</html>
